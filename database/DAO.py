@@ -21,3 +21,36 @@ class DAO():
         cursor.close()
         conn.close()
         return result
+    @staticmethod
+    def getAirportsbyAirlines(n: int)->list:
+        conn = DBConnect.get_connection()
+        cursor = conn.cursor()
+        q="""SELECT t.ID, t.IATA_CODE, count(*) as N
+                    FROM (select a.ID, a.IATA_CODE, f.AIRLINE_ID, count(*)
+                    from airports a, flights f
+                    where a.ID = f.ORIGIN_AIRPORT_ID 
+                    or a.ID = f.DESTINATION_AIRPORT_ID 
+                    GROUP BY a.ID, a.IATA_CODE, f.AIRLINE_ID ) t
+                    GROUP BY t.ID, t.IATA_CODE
+                    having N >= %s
+                    order by N asc"""
+        cursor.execute(q, (n,))
+        l=cursor.fetchall()
+        res=[]
+        for row in l:
+            res.append(row[0])
+        conn.close()
+        cursor.close()
+        return res
+    @staticmethod
+    def getFlights()->list:
+        conn = DBConnect.get_connection()
+        cursor = conn.cursor(dictionary=True)
+        q="""select f.DESTINATION_AIRPORT_ID as dest, f.ORIGIN_AIRPORT_ID as orig, count(*) as n
+from flights f 
+group by f.ORIGIN_AIRPORT_ID, f.DESTINATION_AIRPORT_ID  """
+        cursor.execute(q)
+        l=cursor.fetchall()
+        cursor.close()
+        conn.close()
+        return l

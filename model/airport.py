@@ -12,6 +12,8 @@ class Airport:
     LONGITUDE: float
     TIMEZONE_OFFSET: float
 
+    def __eq__(self, other):
+        return self.ID == other.ID
     def __str__(self):
         return f"{self.AIRPORT}"
 
